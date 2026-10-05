@@ -1,1 +1,640 @@
+/*
+CO1: Problem-Class Signatures and Advanced Algorithmic Strategy
 
+Project implementation:
+1. Inverted Index
+2. Multi-factor Ranking
+3. Efficient search strategy
+
+The project chooses different data structures/strategies
+depending on the search requirement.
+*/
+
+
+// ===============================
+// INVERTED INDEX
+// ===============================
+
+class InvertedIndex {
+
+    constructor() {
+
+        // token -> student records
+        this.index = new Map();
+
+        this.stopWords = new Set([
+            'a', 'an', 'and', 'are', 'as', 'at',
+            'be', 'by', 'for', 'from', 'has',
+            'he', 'in', 'is', 'it', 'its',
+            'of', 'on', 'that', 'the', 'to',
+            'was', 'were', 'will', 'with'
+        ]);
+
+        this.totalIndexedTerms = 0;
+    }
+
+
+    // Convert text into searchable tokens
+    tokenize(text) {
+
+        if (!text || typeof text !== 'string') {
+            return [];
+        }
+
+        return text
+            .toLowerCase()
+            .replace(/[^a-z0-9+#.-]/g, ' ')
+            .split(/\s+/)
+            .map(word => word.trim())
+            .filter(word =>
+                word.length > 1 &&
+                !this.stopWords.has(word)
+            );
+    }
+
+
+    // Add a student to the index
+    indexStudent(student) {
+
+        if (!student || !student.id) {
+            return;
+        }
+
+        const studentId = student.id;
+
+        const fieldsToIndex = [
+
+            {
+                name: 'name',
+                value: student.name
+            },
+
+            {
+                name: 'rollNo',
+                value: student.rollNo
+            },
+
+            {
+                name: 'department',
+                value: student.department
+            },
+
+            {
+                name: 'skills',
+                value: Array.isArray(student.skills)
+                    ? student.skills.join(' ')
+                    : ''
+            },
+
+            {
+                name: 'projects',
+                value: Array.isArray(student.projects)
+                    ? student.projects
+                        .map(project =>
+                            project.title + ' ' +
+                            (project.description || '')
+                        )
+                        .join(' ')
+                    : ''
+            },
+
+            {
+                name: 'achievements',
+                value: Array.isArray(student.achievements)
+                    ? student.achievements.join(' ')
+                    : ''
+            }
+        ];
+
+
+        for (const field of fieldsToIndex) {
+
+            const tokens = this.tokenize(field.value);
+
+            for (const token of tokens) {
+
+                if (!this.index.has(token)) {
+                    this.index.set(token, new Map());
+                }
+
+                const postings = this.index.get(token);
+
+                if (!postings.has(studentId)) {
+
+                    postings.set(studentId, {
+                        count: 0,
+                        fields: new Set()
+                    });
+
+                    this.totalIndexedTerms++;
+                }
+
+                const entry = postings.get(studentId);
+
+                entry.count++;
+
+                entry.fields.add(field.name);
+            }
+        }
+    }
+
+
+    // Search for a single word
+    search(term) {
+
+        const cleanTerm = term
+            .trim()
+            .toLowerCase();
+
+        const postings = this.index.get(cleanTerm);
+
+        if (!postings) {
+            return [];
+        }
+
+        const results = [];
+
+        for (const [studentId, info] of postings.entries()) {
+
+            results.push({
+
+                studentId,
+
+                frequency: info.count,
+
+                matchedFields:
+                    Array.from(info.fields)
+            });
+        }
+
+
+        // Highest frequency first
+        return results.sort(
+            (a, b) => b.frequency - a.frequency
+        );
+    }
+
+
+    // Multi-word search
+    searchMulti(query) {
+
+        const tokens = this.tokenize(query);
+
+        if (tokens.length === 0) {
+            return [];
+        }
+
+        const studentScoreMap = new Map();
+
+
+        for (const token of tokens) {
+
+            const postings = this.index.get(token);
+
+            if (!postings) {
+                continue;
+            }
+
+
+            for (const [studentId, info]
+                of postings.entries()) {
+
+                if (!studentScoreMap.has(studentId)) {
+
+                    studentScoreMap.set(studentId, {
+
+                        studentId,
+
+                        score: 0,
+
+                        matchedTokens: [],
+
+                        matchedFields: new Set()
+                    });
+                }
+
+
+                const record =
+                    studentScoreMap.get(studentId);
+
+
+                // Give score according to frequency
+                record.score += info.count * 10;
+
+
+                if (!record.matchedTokens.includes(token)) {
+
+                    record.matchedTokens.push(token);
+                }
+
+
+                info.fields.forEach(field => {
+
+                    record.matchedFields.add(field);
+
+                });
+            }
+        }
+
+
+        return Array.from(
+            studentScoreMap.values()
+        )
+
+        .map(record => ({
+
+            ...record,
+
+            matchedFields:
+                Array.from(record.matchedFields)
+
+        }))
+
+        .sort(
+            (a, b) => b.score - a.score
+        );
+    }
+
+
+    // Display index statistics
+    getStats() {
+
+        return {
+
+            uniqueTokens:
+                this.index.size,
+
+            totalIndexedTerms:
+                this.totalIndexedTerms
+        };
+    }
+}
+
+
+
+// ======================================
+// MULTI-FACTOR RANKING
+// ======================================
+
+class Ranker {
+
+
+    static scoreStudent(
+        student,
+        query,
+        queryTokens
+    ) {
+
+        let score = 0;
+
+        const breakdown = [];
+
+        const qLower =
+            query.toLowerCase().trim();
+
+
+        // Exact Roll Number
+        if (
+            student.rollNo &&
+            student.rollNo.toLowerCase() === qLower
+        ) {
+
+            score += 100;
+
+            breakdown.push({
+                reason: 'Exact Roll Number Match',
+                points: 100
+            });
+
+        }
+
+        // Roll number prefix
+        else if (
+            student.rollNo &&
+            student.rollNo
+                .toLowerCase()
+                .startsWith(qLower)
+        ) {
+
+            score += 50;
+
+            breakdown.push({
+                reason: 'Roll Number Prefix Match',
+                points: 50
+            });
+        }
+
+
+        // Exact name
+        if (
+            student.name &&
+            student.name.toLowerCase() === qLower
+        ) {
+
+            score += 80;
+
+            breakdown.push({
+                reason: 'Exact Full Name Match',
+                points: 80
+            });
+        }
+
+
+        // Name contains query
+        else if (
+            student.name &&
+            student.name
+                .toLowerCase()
+                .includes(qLower)
+        ) {
+
+            score += 45;
+
+            breakdown.push({
+                reason: 'Name Contains Keyword',
+                points: 45
+            });
+        }
+
+
+        // Department match
+        if (
+            student.department &&
+            (
+                student.department
+                    .toLowerCase()
+                    .includes(qLower)
+                ||
+                qLower.includes(
+                    student.department.toLowerCase()
+                )
+            )
+        ) {
+
+            score += 35;
+
+            breakdown.push({
+                reason: 'Department Match',
+                points: 35
+            });
+        }
+
+
+        // Skills
+        if (Array.isArray(student.skills)) {
+
+            let matchedSkillCount = 0;
+
+            for (const skill of student.skills) {
+
+                const skillLower =
+                    skill.toLowerCase();
+
+                if (
+                    skillLower === qLower ||
+                    queryTokens.some(
+                        token =>
+                            skillLower.includes(token)
+                    )
+                ) {
+
+                    matchedSkillCount++;
+                }
+            }
+
+
+            if (matchedSkillCount > 0) {
+
+                const points =
+                    Math.min(
+                        60,
+                        matchedSkillCount * 25
+                    );
+
+                score += points;
+
+                breakdown.push({
+
+                    reason:
+                        `Matched ${matchedSkillCount} Technical Skill(s)`,
+
+                    points
+                });
+            }
+        }
+
+
+        // Projects
+        if (Array.isArray(student.projects)) {
+
+            let projectHits = 0;
+
+            for (const project of student.projects) {
+
+                const projectText =
+                    `${project.title}
+                    ${project.description || ''}
+                    ${(project.techStack || []).join(' ')}`
+                    .toLowerCase();
+
+
+                if (
+                    projectText.includes(qLower) ||
+                    queryTokens.some(
+                        token =>
+                            projectText.includes(token)
+                    )
+                ) {
+
+                    projectHits++;
+                }
+            }
+
+
+            if (projectHits > 0) {
+
+                const points =
+                    Math.min(
+                        40,
+                        projectHits * 20
+                    );
+
+                score += points;
+
+                breakdown.push({
+
+                    reason:
+                        `Matched ${projectHits} Project Keyword(s)`,
+
+                    points
+                });
+            }
+        }
+
+
+        // Token overlap
+        let tokenMatches = 0;
+
+        for (const token of queryTokens) {
+
+            const fullProfile =
+                `${student.name}
+                ${student.rollNo}
+                ${student.department}
+                ${(student.skills || []).join(' ')}`
+                .toLowerCase();
+
+
+            if (fullProfile.includes(token)) {
+
+                tokenMatches++;
+            }
+        }
+
+
+        if (tokenMatches > 0) {
+
+            const points =
+                tokenMatches * 10;
+
+            score += points;
+
+            breakdown.push({
+
+                reason:
+                    `Matched ${tokenMatches} Search Term(s)`,
+
+                points
+            });
+        }
+
+
+        // Academic score
+        if (score > 0) {
+
+            if (student.cgpa) {
+
+                const cgpaBoost =
+                    parseFloat(
+                        student.cgpa.toFixed(1)
+                    );
+
+                score += cgpaBoost;
+
+                breakdown.push({
+
+                    reason:
+                        `CGPA Merit Boost (${student.cgpa})`,
+
+                    points: cgpaBoost
+                });
+            }
+
+
+            if (student.attendance) {
+
+                const attendanceBoost =
+                    parseFloat(
+                        (
+                            student.attendance * 0.08
+                        ).toFixed(1)
+                    );
+
+                score += attendanceBoost;
+
+                breakdown.push({
+
+                    reason:
+                        `Attendance Reliability Boost (${student.attendance}%)`,
+
+                    points: attendanceBoost
+                });
+            }
+        }
+
+
+        return {
+
+            score:
+                Math.min(
+                    100,
+                    parseFloat(score.toFixed(1))
+                ),
+
+            rawScore: score,
+
+            breakdown
+        };
+    }
+
+
+    // Rank all students
+    static rank(students, query) {
+
+        if (!query || query.trim() === '') {
+
+            return students.map(student => ({
+
+                student,
+
+                score: 100,
+
+                breakdown: []
+            }));
+        }
+
+
+        const queryTokens =
+            query
+                .toLowerCase()
+                .trim()
+                .split(/\s+/)
+                .filter(token =>
+                    token.length > 1
+                );
+
+
+        const scored = [];
+
+
+        for (const student of students) {
+
+            const result =
+                this.scoreStudent(
+                    student,
+                    query,
+                    queryTokens
+                );
+
+
+            if (result.score > 0) {
+
+                scored.push({
+
+                    student,
+
+                    score: result.score,
+
+                    breakdown:
+                        result.breakdown
+                });
+            }
+        }
+
+
+        // Highest score first
+        scored.sort(
+            (a, b) =>
+                b.score - a.score
+        );
+
+
+        return scored;
+    }
+}
+
+
+module.exports = {
+    InvertedIndex,
+    Ranker
+};
