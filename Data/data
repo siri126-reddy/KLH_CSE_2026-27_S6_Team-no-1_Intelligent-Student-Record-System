@@ -1,1 +1,53 @@
 
+| ID       | Roll No. | Name                 | Department        | Year/Sem | CGPA | Attendance |
+| -------- | -------- | -------------------- | ----------------- | -------- | ---: | ---------: |
+| STU-1001 | 21CS101  | Rupesh Naidu         | CSE               | 4/7      | 9.45 |        94% |
+| STU-1002 | 22AI102  | Arjun Kapoor         | AI & Data Science | 3/6      | 7.54 |        97% |
+| STU-1003 | 21IT103  | Isha Sharma          | IT                | 4/7      | 7.71 |        96% |
+| STU-1004 | 24EC104  | Varun Reddy          | ECE               | 1/2      | 7.88 |        95% |
+| STU-1005 | 23EE105  | Kritika Sen          | EEE               | 2/3      | 8.05 |        94% |
+| STU-1006 | 22ME106  | Vivek Iyer           | Mechanical        | 3/6      | 8.22 |        93% |
+| STU-1007 | 21CS107  | Gayatri Mukhopadhyay | CSE               | 4/7      | 8.39 |        92% |
+| STU-1008 | 24AI108  | Aditya Saxena        | AI & Data Science | 1/2      | 8.56 |        91% |
+| STU-1009 | 23IT109  | Sneha Malhotra       | IT                | 2/3      | 8.73 |        90% |
+| STU-1010 | 22EC110  | Mohit Singhal        | ECE               | 3/6      | 8.90 |        89% |
+| STU-1011 | 21EE111  | Riya Choudhury       | EEE               | 4/7      | 9.07 |        88% |
+| STU-1012 | 24ME112  | Abhishek Nair        | Mechanical        | 1/2      | 9.24 |        87% |
+| STU-1013 | 23CS113  | Pallavi Nambiar      | CSE               | 2/3      | 9.41 |        86% |
+| STU-1014 | 22AI114  | Karan Bhattacharya   | AI & Data Science | 3/6      | 9.58 |        85% |
+| STU-1015 | 21IT115  | Rohan Deshmukh       | IT                | 4/7      | 9.75 |        84% |
+| STU-1016 | 24EC116  | Naveen Chawla        | ECE               | 1/2      | 7.27 |        83% |
+| STU-1017 | 23EE117  | Pooja Menon          | EEE               | 2/3      | 7.44 |        82% |
+| STU-1018 | 22ME118  | Akash Verma          | Mechanical        | 3/6      | 7.61 |        81% |
+| STU-1019 | 21CS119  | Swati Agarwal        | CSE               | 4/7      | 7.78 |        80% |
+| STU-1020 | 24AI120  | Kunal Joshi          | AI & Data Science | 1/2      | 7.95 |        79% |
+| STU-1021 | 23IT121  | Pooja Rao            | IT                | 2/3      | 8.12 |        78% |
+| STU-1022 | 22EC122  | Priya Sundaram       | ECE               | 3/6      | 8.29 |        77% |
+| STU-1023 | 21EE123  | Tanvi Pillai         | EEE               | 4/7      | 8.46 |        76% |
+| STU-1024 | 24ME124  | Karthik Krishnan     | Mechanical        | 1/2      | 8.63 |        75% |
+| STU-1025 | 23CS125  | Sanjana Hegde        | CSE               | 2/3      | 8.80 |        98% |
+| STU-1026 | 22AI126  | Pranav Mishra        | AI & Data Science | 3/6      | 8.97 |        97% |
+| STU-1027 | 21IT127  | Simran Patel         | IT                | 4/7      | 9.14 |        96% |
+| STU-1028 | 24EC128  | Ashwin Bansal        | ECE               | 1/2      | 9.31 |        95% |
+| STU-1029 | 23EE129  | Vikram Banerjee      | EEE               | 2/3      | 9.48 |        94% |
+| STU-1030 | 22ME130  | Harsh Vardhan        | Mechanical        | 3/6      | 9.65 |        93% |
+| STU-1031 | 21CS131  | Bhavya Kulkarni      | CSE               | 4/7      | 9.82 |        92% |
+| STU-1032 | 24AI132  | Tushar Naidu         | AI & Data Science | 1/2      | 7.34 |        91% |
+| STU-1033 | 23IT133  | Neha Gupta           | IT                | 2/3      | 7.51 |        90% |
+| STU-1034 | 22EC134  | Manish Kapoor        | ECE               | 3/6      | 7.68 |        89% |
+| STU-1035 | 21EE135  | Aishwarya Sharma     | EEE               | 4/7      | 7.85 |        88% |
+| STU-1036 | 24ME136  | Ananya Reddy         | Mechanical        | 1/2      | 8.02 |        87% |
+| STU-1037 | 23CS137  | Kavya Sen            | CSE               | 2/3      | 8.19 |        86% |
+| STU-1038 | 22AI138  | Rahul Iyer           | AI & Data Science | 3/6      | 8.36 |        85% |
+| STU-1039 | 21IT139  | Deepika Mukhopadhyay | IT                | 4/7      | 8.53 |        84% |
+| STU-1040 | 24EC140  | Gautam Saxena        | ECE               | 1/2      | 8.70 |        83% |
+| STU-1041 | 23EE141  | Pooja Malhotra       | EEE               | 2/3      | 8.87 |        82% |
+| STU-1042 | 22ME142  | Nikhil Singhal       | Mechanical        | 3/6      | 9.04 |        81% |
+| STU-1043 | 21CS143  | Aarav Choudhury      | CSE               | 4/7      | 9.21 |        80% |
+| STU-1044 | 24AI144  | Meera Nair           | AI & Data Science | 1/2      | 9.38 |        79% |
+| STU-1045 | 23IT145  | Divya Nambiar        | IT                | 2/3      | 9.55 |        78% |
+| STU-1046 | 22EC146  | Rishi Bhattacharya   | ECE               | 3/6      | 9.72 |        77% |
+| STU-1047 | 21EE147  | Shruti Deshmukh      | EEE               | 4/7      | 7.24 |        76% |
+| STU-1048 | 24ME148  | Suresh Chawla        | Mechanical        | 1/2      | 7.41 |        75% |
+| STU-1049 | 23CS149  | Shreya Menon         | CSE               | 2/3      | 7.58 |        98% |
+| STU-1050 | 22AI150  | Rupesh Verma         | AI & Data Science | 3/6      | 7.75 |        97% |
