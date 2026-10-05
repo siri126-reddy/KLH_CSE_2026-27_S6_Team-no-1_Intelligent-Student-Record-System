@@ -1,0 +1,448 @@
+/*
+CO3: Advanced Dynamic Programming
+
+Algorithm:
+Levenshtein Edit Distance
+
+Operations:
+1. Insertion
+2. Deletion
+3. Substitution
+
+Time Complexity:
+O(M × N)
+
+Space Complexity:
+O(M × N)
+*/
+
+
+class FuzzySearch {
+
+
+    // =========================================
+    // LEVENSHTEIN DISTANCE
+    // =========================================
+
+    static levenshtein(str1, str2) {
+
+        const s1 =
+            (str1 || '')
+                .toLowerCase()
+                .trim();
+
+        const s2 =
+            (str2 || '')
+                .toLowerCase()
+                .trim();
+
+
+        const m = s1.length;
+
+        const n = s2.length;
+
+
+        // Create DP table
+        const dp =
+            Array.from(
+                { length: m + 1 },
+                () =>
+                    new Array(n + 1).fill(0)
+            );
+
+
+        // Base cases
+        for (let i = 0; i <= m; i++) {
+
+            dp[i][0] = i;
+        }
+
+
+        for (let j = 0; j <= n; j++) {
+
+            dp[0][j] = j;
+        }
+
+
+        // Fill DP table
+        for (let i = 1; i <= m; i++) {
+
+            for (let j = 1; j <= n; j++) {
+
+
+                // Characters match
+                const cost =
+                    s1[i - 1] === s2[j - 1]
+                        ? 0
+                        : 1;
+
+
+                // Minimum of:
+                // deletion
+                // insertion
+                // substitution
+
+                dp[i][j] =
+                    Math.min(
+
+                        dp[i - 1][j] + 1,
+
+                        dp[i][j - 1] + 1,
+
+                        dp[i - 1][j - 1] +
+                            cost
+                    );
+            }
+        }
+
+
+        const distance =
+            dp[m][n];
+
+
+        const maxLength =
+            Math.max(m, n);
+
+
+        const similarity =
+            maxLength === 0
+                ? 1
+                : Math.max(
+                    0,
+                    1 - distance / maxLength
+                );
+
+
+        return {
+
+            distance,
+
+            similarity:
+                parseFloat(
+                    similarity.toFixed(3)
+                ),
+
+            matrix: dp,
+
+            str1: s1,
+
+            str2: s2
+        };
+    }
+
+
+    // =========================================
+    // FUZZY SEARCH STUDENTS
+    // =========================================
+
+    static searchStudents(
+        students,
+        query,
+        maxDistanceThreshold = 2
+    ) {
+
+
+        if (
+            !query ||
+            query.trim().length === 0
+        ) {
+
+            return {
+
+                results: [],
+
+                executionTimeMs: 0,
+
+                queryMatrix: null
+            };
+        }
+
+
+        const cleanQuery =
+            query
+                .trim()
+                .toLowerCase();
+
+
+        const queryTokens =
+            cleanQuery
+                .split(/\s+/)
+                .filter(
+                    token =>
+                        token.length > 0
+                );
+
+
+        const results = [];
+
+
+        let bestMatrixSample = null;
+
+
+        for (const student of students) {
+
+
+            const candidateTokens = [];
+
+
+            // Student name
+            candidateTokens.push({
+
+                text: student.name,
+
+                field: 'name'
+            });
+
+
+            // Name parts
+            student.name
+                .split(/\s+/)
+                .forEach(word => {
+
+                    candidateTokens.push({
+
+                        text: word,
+
+                        field: 'name (part)'
+                    });
+                });
+
+
+            // Roll number
+            candidateTokens.push({
+
+                text: student.rollNo,
+
+                field: 'rollNo'
+            });
+
+
+            // Department
+            candidateTokens.push({
+
+                text: student.department,
+
+                field: 'department'
+            });
+
+
+            // Skills
+            if (
+                Array.isArray(student.skills)
+            ) {
+
+                student.skills.forEach(skill => {
+
+                    candidateTokens.push({
+
+                        text: skill,
+
+                        field: 'skill'
+                    });
+
+
+                    skill
+                        .split(/\s+/)
+                        .forEach(part => {
+
+                            candidateTokens.push({
+
+                                text: part,
+
+                                field: 'skill (part)'
+                            });
+                        });
+                });
+            }
+
+
+            // Projects
+            if (
+                Array.isArray(student.projects)
+            ) {
+
+                student.projects.forEach(project => {
+
+                    candidateTokens.push({
+
+                        text: project.title,
+
+                        field: 'project'
+                    });
+
+
+                    project.title
+                        .split(/\s+/)
+                        .forEach(part => {
+
+                            candidateTokens.push({
+
+                                text: part,
+
+                                field: 'project (part)'
+                            });
+                        });
+                });
+            }
+
+
+            let bestStudentMatch = null;
+
+
+            // Compare query tokens
+            // with student tokens
+            for (const queryToken of queryTokens) {
+
+                for (
+                    const candidate
+                    of candidateTokens
+                ) {
+
+
+                    const candidateText =
+                        candidate.text.toLowerCase();
+
+
+                    // Ignore obviously different lengths
+                    if (
+                        Math.abs(
+                            candidateText.length -
+                            queryToken.length
+                        ) >
+                        maxDistanceThreshold
+                    ) {
+
+                        continue;
+                    }
+
+
+                    const result =
+                        this.levenshtein(
+                            queryToken,
+                            candidateText
+                        );
+
+
+                    if (
+                        result.distance <=
+                        maxDistanceThreshold
+                    ) {
+
+
+                        if (
+                            !bestStudentMatch ||
+                            result.distance <
+                            bestStudentMatch.distance
+                        ) {
+
+                            bestStudentMatch = {
+
+                                distance:
+                                    result.distance,
+
+                                similarity:
+                                    result.similarity,
+
+                                matchedToken:
+                                    candidate.text,
+
+                                queryToken,
+
+                                field:
+                                    candidate.field,
+
+                                matrix:
+                                    result.matrix
+                            };
+
+
+                            bestMatrixSample = {
+
+                                str1: queryToken,
+
+                                str2: candidateText,
+
+                                distance:
+                                    result.distance,
+
+                                matrix:
+                                    result.matrix,
+
+                                matchedField:
+                                    candidate.field
+                            };
+                        }
+                    }
+                }
+            }
+
+
+            // Add matching student
+            if (bestStudentMatch) {
+
+                results.push({
+
+                    student,
+
+                    fuzzyScore:
+                        bestStudentMatch.similarity,
+
+                    editDistance:
+                        bestStudentMatch.distance,
+
+                    matchedTerm:
+                        bestStudentMatch.matchedToken,
+
+                    queryTerm:
+                        bestStudentMatch.queryToken,
+
+                    field:
+                        bestStudentMatch.field
+                });
+            }
+        }
+
+
+        // Sort by smallest edit distance
+        results.sort(
+            (a, b) => {
+
+                if (
+                    a.editDistance !==
+                    b.editDistance
+                ) {
+
+                    return (
+                        a.editDistance -
+                        b.editDistance
+                    );
+                }
+
+
+                return (
+                    b.fuzzyScore -
+                    a.fuzzyScore
+                );
+            }
+        );
+
+
+        return {
+
+            results,
+
+            query: cleanQuery,
+
+            threshold:
+                maxDistanceThreshold,
+
+            totalMatches:
+                results.length,
+
+            bestMatrixSample
+        };
+    }
+}
+
+
+module.exports = FuzzySearch;
