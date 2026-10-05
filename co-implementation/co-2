@@ -1,1 +1,390 @@
 
+/*
+CO2: Linear-Time String Algorithms
+
+Algorithm:
+Knuth-Morris-Pratt (KMP)
+
+Time Complexity:
+O(N + M)
+
+N = length of text
+M = length of pattern
+*/
+
+
+class KMP {
+
+
+    // =========================================
+    // COMPUTE LPS ARRAY
+    // =========================================
+
+    static computeLPS(pattern) {
+
+        const m = pattern.length;
+
+        const lps =
+            new Array(m).fill(0);
+
+        let length = 0;
+
+        let i = 1;
+
+
+        while (i < m) {
+
+            if (
+                pattern[i].toLowerCase() ===
+                pattern[length].toLowerCase()
+            ) {
+
+                length++;
+
+                lps[i] = length;
+
+                i++;
+            }
+
+            else {
+
+                if (length !== 0) {
+
+                    length =
+                        lps[length - 1];
+
+                }
+
+                else {
+
+                    lps[i] = 0;
+
+                    i++;
+                }
+            }
+        }
+
+
+        return lps;
+    }
+
+
+    // =========================================
+    // KMP SEARCH
+    // =========================================
+
+    static search(text, pattern) {
+
+        if (
+            !text ||
+            !pattern ||
+            pattern.length === 0
+        ) {
+
+            return {
+
+                matches: [],
+
+                comparisons: 0,
+
+                lps: []
+            };
+        }
+
+
+        const lps =
+            this.computeLPS(pattern);
+
+
+        const textLower =
+            text.toLowerCase();
+
+        const patternLower =
+            pattern.toLowerCase();
+
+
+        const n = text.length;
+
+        const m = pattern.length;
+
+
+        const matches = [];
+
+        let comparisons = 0;
+
+
+        let i = 0;
+
+        let j = 0;
+
+
+        while (i < n) {
+
+            comparisons++;
+
+
+            if (
+                patternLower[j] ===
+                textLower[i]
+            ) {
+
+                i++;
+
+                j++;
+            }
+
+
+            // Pattern found
+            if (j === m) {
+
+                matches.push(i - j);
+
+                // Use LPS instead of starting again
+                j = lps[j - 1];
+            }
+
+
+            else if (
+                i < n &&
+                patternLower[j] !==
+                textLower[i]
+            ) {
+
+                if (j !== 0) {
+
+                    j =
+                        lps[j - 1];
+                }
+
+                else {
+
+                    i++;
+                }
+            }
+        }
+
+
+        return {
+
+            matches,
+
+            comparisons,
+
+            lps
+        };
+    }
+
+
+    // =========================================
+    // SEARCH STUDENT RECORDS
+    // =========================================
+
+    static searchStudents(
+        students,
+        pattern,
+        fields = [
+            'name',
+            'rollNo',
+            'department',
+            'skills',
+            'projects',
+            'achievements'
+        ]
+    ) {
+
+
+        if (
+            !pattern ||
+            pattern.trim() === ''
+        ) {
+
+            return {
+
+                results: [],
+
+                totalComparisons: 0,
+
+                executionTimeMs: 0,
+
+                lps: []
+            };
+        }
+
+
+        const cleanPattern =
+            pattern.trim();
+
+
+        const lps =
+            this.computeLPS(
+                cleanPattern
+            );
+
+
+        const results = [];
+
+        let totalComparisons = 0;
+
+
+        for (const student of students) {
+
+            const matchDetails = [];
+
+
+            for (const field of fields) {
+
+                let fieldTexts = [];
+
+
+                // Skills
+                if (
+                    field === 'skills' &&
+                    Array.isArray(student.skills)
+                ) {
+
+                    fieldTexts =
+                        student.skills.map(
+                            (skill, index) => ({
+
+                                text: skill,
+
+                                subfield:
+                                    `skill[${index}]`
+                            })
+                        );
+                }
+
+
+                // Projects
+                else if (
+                    field === 'projects' &&
+                    Array.isArray(student.projects)
+                ) {
+
+                    fieldTexts =
+                        student.projects.map(
+                            project => ({
+
+                                text:
+                                    `${project.title} -
+                                    ${project.description || ''} -
+                                    ${(project.techStack || []).join(' ')}`,
+
+                                subfield:
+                                    `project: ${project.title}`
+                            })
+                        );
+                }
+
+
+                // Achievements
+                else if (
+                    field === 'achievements' &&
+                    Array.isArray(student.achievements)
+                ) {
+
+                    fieldTexts =
+                        student.achievements.map(
+                            (achievement, index) => ({
+
+                                text: achievement,
+
+                                subfield:
+                                    `achievement[${index}]`
+                            })
+                        );
+                }
+
+
+                // Normal string fields
+                else if (
+                    typeof student[field] === 'string'
+                ) {
+
+                    fieldTexts = [{
+
+                        text: student[field],
+
+                        subfield: field
+                    }];
+                }
+
+
+                // Search each field
+                for (const item of fieldTexts) {
+
+                    const result =
+                        this.search(
+                            item.text,
+                            cleanPattern
+                        );
+
+
+                    totalComparisons +=
+                        result.comparisons;
+
+
+                    if (
+                        result.matches.length > 0
+                    ) {
+
+                        matchDetails.push({
+
+                            field: item.subfield,
+
+                            occurrences:
+                                result.matches.length,
+
+                            positions:
+                                result.matches
+                        });
+                    }
+                }
+            }
+
+
+            if (matchDetails.length > 0) {
+
+                results.push({
+
+                    student,
+
+                    matchCount:
+                        matchDetails.reduce(
+                            (sum, item) =>
+                                sum + item.occurrences,
+                            0
+                        ),
+
+                    matchDetails
+                });
+            }
+        }
+
+
+        // Highest number of matches first
+        results.sort(
+            (a, b) =>
+                b.matchCount -
+                a.matchCount
+        );
+
+
+        return {
+
+            results,
+
+            pattern: cleanPattern,
+
+            lps,
+
+            totalComparisons,
+
+            totalMatches:
+                results.length
+        };
+    }
+}
+
+
+module.exports = KMP;
